@@ -4,36 +4,53 @@ const main = document.querySelector("main");
 const section = document.getElementById("comments");
 
 section.remove();
-
+let id = "";
 export async function showDetails(e) {
   section.innerHTML = "";
-  const id = e.target.parentElement.dataset.id;
+  id = e ? e.target.parentElement.dataset.id : id;
   const topic = await getTopic(id);
-  //const comments = await getAllComments(id);
+  const comments = await getAllComments();
   const div = document.createElement("div");
   div.classList.add("comment");
   const topicElement = createTopicTemplate(topic);
   const commentForm = createCommentForm();
   div.appendChild(topicElement);
-  //   Object.values(comments).forEach((comment) => {
-  //     const commentElement = creteCommentTemplate(comment);
-  //     div.appendChild(commentElement);
-  //   });
+  Object.values(comments).forEach((comment) => {
+    const commentElement = creteCommentTemplate(comment);
+    div.appendChild(commentElement);
+  });
   section.appendChild(div);
   section.appendChild(commentForm);
   main.replaceChildren(section);
+
+  const form = document.querySelector(".answer form");
+
+  form.addEventListener("submit", onSubmit);
 }
 
-const form = document.querySelector("form");
-
-form.addEventListener("submit", createComment);
-
-async function createComment(e) {
-  debugger;
+async function onSubmit(e) {
   e.preventDefault();
   const formData = new FormData(e.target);
 
+  const username = formData.get("username");
+  const postText = formData.get("postText");
+  const createDate = new Date().getTime();
+  if (!username && postText) {
+    throw window.alert("Missing inputs");
+  }
+  createComment({ username, postText, createDate, _topicId: id });
   console.log(...formData.entries());
+}
+
+async function createComment(comment) {
+  const response = await fetch(commentsURI, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(comment),
+  });
+  showDetails();
 }
 
 async function getTopic(id) {
@@ -42,9 +59,10 @@ async function getTopic(id) {
   return data;
 }
 
-async function getAllComments(id) {
-  const response = await fetch(commentsURI + id);
+async function getAllComments() {
+  const response = await fetch(commentsURI);
   const data = await response.json();
+  return Object.values(data).filter((x) => x._topicId === id);
 }
 
 function createTopicTemplate(topic) {
@@ -62,18 +80,21 @@ function createTopicTemplate(topic) {
 }
 
 function creteCommentTemplate(comment) {
+  const date = new Date(comment.createDate);
+  const dateStr = `${date.getFullYear()}/${
+    date.getMonth() + 1
+  }/${date.getDate()}, ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
   const div = document.createElement("div");
   div.id = "user-comment";
   div.innerHTML = `<div class="topic-name-wrapper">
       <div class="topic-name">
         <p>
-          <strong>Daniel</strong> commented on
-          <time>3/15/2022, 12:39:02 AM</time>
+          <strong>${comment.username}</strong> commented on
+          <time>${dateStr}</time>
         </p>
         <div class="post-content">
           <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Iure facere
-            sint dolorem quam.
+            ${comment.postText}
           </p>
         </div>
       </div>

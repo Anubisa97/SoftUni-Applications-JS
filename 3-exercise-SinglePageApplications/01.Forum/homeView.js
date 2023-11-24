@@ -21,7 +21,11 @@ export async function showHome(e) {
     topicContainer.appendChild(temp);
   });
 
-  topicContainer.querySelector("a").addEventListener("click", showDetails);
+  const anchor = topicContainer.querySelectorAll("a");
+
+  anchor.forEach((a) => {
+    a.addEventListener("click", showDetails);
+  });
 
   main.replaceChildren(section);
   main.appendChild(topicContainer);

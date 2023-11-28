@@ -4,9 +4,15 @@ import { showRegister } from "./src/views/registerView.js";
 import { showDashboard } from "./src/views/dashboardView.js";
 import { showDetails } from "./src/views/detailsView.js";
 import { showCreate } from "./src/views/createView.js";
+import { userInfo } from "./src/api/userHelper.js";
+import { logout } from "./src/api/user.js";
 
 document.getElementById("section").remove();
-document.querySelector("nav").addEventListener("click", onNavigate);
+const nav = document.querySelector("nav");
+nav.addEventListener("click", onNavigate);
+
+const main = document.getElementById("main");
+updateNav();
 
 const routs = {
   "/": showHome,
@@ -14,10 +20,36 @@ const routs = {
   "/create": showCreate,
   "/login": showLogin,
   "/register": showRegister,
-  "/logout": () => {
-    console.log("logout");
+  "/details": showDetails,
+  "/logout": async () => {
+    await logout();
+    updateNav();
+    goTo("/");
   },
 };
+
+const ctx = {
+  renderer,
+  goTo,
+  updateNav,
+};
+
+function renderer(section) {
+  main.replaceChildren(section);
+}
+
+function updateNav() {
+  const user = userInfo("get");
+  const userA = nav.querySelectorAll(".user");
+  const guestA = nav.querySelectorAll(".guest");
+  if (user) {
+    userA.forEach((a) => (a.style.display = "block"));
+    guestA.forEach((a) => (a.style.display = "none"));
+  } else {
+    userA.forEach((a) => (a.style.display = "none"));
+    guestA.forEach((a) => (a.style.display = "block"));
+  }
+}
 
 function onNavigate(e) {
   e.preventDefault();
@@ -30,5 +62,10 @@ function onNavigate(e) {
   }
 
   const viewName = new URL(target.href).pathname;
-  routs[viewName]();
+  goTo(viewName);
+}
+
+function goTo(name, ...params) {
+  const handler = routs[name];
+  handler(ctx, params);
 }

@@ -1,9 +1,11 @@
-import { getIdeaById } from "../api/data.js";
+import { deleteIdea, getIdeaById } from "../api/data.js";
 import { userInfo } from "../api/userHelper.js";
 
 const details = document.getElementById("detailsView");
 
+let context = null;
 export async function showDetails(ctx, params) {
+  context = ctx;
   const idea = await getIdeaById(params[0]);
   const user = userInfo("get");
   const isOwner = user._id === idea._ownerId;
@@ -14,9 +16,9 @@ export async function showDetails(ctx, params) {
 
 function onRemove(e) {
   e.preventDefault();
-  debugger;
   const id = e.target.dataset.id;
-  context.goTo("/details", id);
+  deleteIdea(id);
+  context.goTo("/details");
 }
 
 function createTemp(idea, isOwner) {
@@ -28,6 +30,10 @@ function createTemp(idea, isOwner) {
           <p class="idea-description">${idea.description}</p>
         </div>
         <div class="text-center">
-        ${isOwner ? `<a class="btn detb" href="">Delete</a>` : ""}  
+        ${
+          isOwner
+            ? `<a class="btn detb" data-id=${idea._id} href="">Delete</a>`
+            : ""
+        }  
         </div>`;
 }

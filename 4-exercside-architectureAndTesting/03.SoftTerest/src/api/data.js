@@ -5,8 +5,8 @@ import { requester } from "./requester.js";
 const URL = {
   getAll: "data/ideas?select=_id%2Ctitle%2Cimg&sortBy=_createdOn%20desc",
   getSingleIdea: "data/ideas/",
-  create: "data/ideas",
-  delete: "data/ideas",
+  create: "data/ideas/",
+  delete: "data/ideas/",
 };
 
 export async function getAllIdeas() {
@@ -23,6 +23,6 @@ export async function createIdea(data) {
   return await requester("POST", URL.create, data);
 }
 
-export async function deleteIdea(data) {
-  return await requester("DELETE", URL.delete, data);
+export async function deleteIdea(id) {
+  return await requester("DELETE", URL.delete + id);
 }
